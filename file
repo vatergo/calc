@@ -1,0 +1,1738 @@
+using Extreme.Mathematics;
+
+namespace RecipeSoftware
+{
+internal class BModel
+{
+public static string modelB1 = "29.294 + 819.8383 * x - 32.8641 * y";
+public static string modelB2 = "-43.621 + 2811.9621 * y + 365.5409 * x - 8351.5551 * Pow(y, 2) - 2275.8001 * x * y + 2564.79 * Pow(x, 2)";
+
+public static void GetBModelOne(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 29.294 - value;
+f[2] = num + 819.8383 * x[0] - 32.8641 * x[1];
+}
+
+public static void GetBJacobianOne(ref Vector<double> x, ref Matrix<double> J)
+{
+J[2, 0] = 819.8383;
+J[2, 1] = -32.8641;
+}
+
+public static void GetBModelTwo(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = -43.621 - value;
+f[2] = num + 2811.9621 * x[1] + 365.5409 * x[0] - 8351.5551 * x[1] * x[1] - 2275.8001 * x[0] * x[1] + 2564.79 * x[0] * x[0];
+}
+
+public static void GetBJacobianTwo(ref Vector<double> x, ref Matrix<double> J)
+{
+J[2, 0] = 5129.58 * x[0] - 2275.8001 * x[1] + 365.5409;
+J[2, 1] = -2275.8001 * x[0] - 16703.1102 * x[1] + 2881.9621;
+}
+}
+}
+
+
+using Extreme.Mathematics;
+using Extreme.Mathematics.Optimization;
+using NCalc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace RecipeSoftware
+{
+internal class Controller
+{
+public double saleX = 100.0;
+public double saleY = 100.0;
+public double val_F = 0.0;
+public double val_P = 0.0;
+public double val_B = 0.0;
+
+public async Task<LeastSquaresOptimizer> FindSolutionAsync()
+{
+LeastSquaresOptimizer solutionAsync = await Task.Run<LeastSquaresOptimizer>((Func<LeastSquaresOptimizer>) (() => this.FindSolution()));
+return solutionAsync;
+}
+
+public LeastSquaresOptimizer FindSolution()
+{
+LeastSquaresOptimizer solution = (LeastSquaresOptimizer) new TrustRegionReflectiveOptimizer();
+solution.ObjectiveFunction = new Func<Vector<double>, Vector<double>, Vector<double»(this.ObjectiveFunction);
+solution.JacobianFunction = new Func<Vector<double>, Matrix<double>, Matrix<double»(this.JacobianFunction);
+solution.InitialGuess = (Vector<double>) Vector.Create<double>(0.0001, 0.0001);
+solution.LowerBounds = (Vector<double>) Vector.Create<double>(1E-05, 1E-05);
+solution.UpperBounds = (Vector<double>) Vector.Create<double>(2.0, 2.0);
+solution.FindMinimum();
+return solution;
+}
+
+private Vector<double> ObjectiveFunction(Vector<double> x, Vector<double> f)
+{
+if (f == (Vector<double>) null)
+f = (Vector<double>) Vector.Create<double>(3);
+if (this.val_F <= 80.0)
+FModel.GetFModelOne(this.val_F, ref x, ref f);
+if (this.val_F > 80.0 && this.val_F <= 380.0)
+FModel.GetFModelTwo(this.val_F, ref x, ref f);
+if (this.val_F > 380.0)
+FModel.GetFModelThree(this.val_F, ref x, ref f);
+if (this.val_P <= 240.0)
+PModel.GetPModelOne(this.val_P, ref x, ref f);
+if (this.val_P > 240.0 && this.val_P <= 350.0)
+PModel.GetPModelTwo(this.val_P, ref x, ref f);
+if (this.val_P > 350.0)
+PModel.GetPModelThree(this.val_P, ref x, ref f);
+if (this.val_B <= 240.0)
+BModel.GetBModelOne(this.val_B, ref x, ref f);
+if (this.val_B > 240.0)
+BModel.GetBModelTwo(this.val_B, ref x, ref f);
+return f;
+}
+
+private Matrix<double> JacobianFunction(Vector<double> x, Matrix<double> J)
+{
+if (J == (Matrix<double>) null)
+J = (Matrix<double>) Matrix.Create<double>(3, 2);
+if (this.val_F <= 80.0)
+FModel.GetFJacobianOne(ref x, ref J);
+if (this.val_F > 80.0 && this.val_F <= 380.0)
+FModel.GetFJacobianTwo(ref x, ref J);
+if (this.val_F > 380.0)
+FModel.GetFJacobianThree(ref x, ref J);
+if (this.val_P <= 240.0)
+PModel.GetPJacobianOne(ref x, ref J);
+if (this.val_P > 240.0 && this.val_P <= 350.0)
+PModel.GetPJacobianTwo(ref x, ref J);
+if (this.val_P > 350.0)
+PModel.GetPJacobianThree(ref x, ref J);
+if (this.val_B <= 240.0)
+BModel.GetBJacobianOne(ref x, ref J);
+if (this.val_B > 240.0)
+BModel.GetBJacobianTwo(ref x, ref J);
+return J;
+}
+
+public List<double> SubstituteValue(double val_X, double val_Y)
+{
+List<double> doubleList = new List<double>();
+if (this.val_F <= 80.0)
+doubleList.Add(Convert.ToDouble(new Expression(FModel.modelF1)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_F > 80.0 && this.val_F <= 380.0)
+doubleList.Add(Convert.ToDouble(new Expression(FModel.modelF2)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_F > 380.0)
+doubleList.Add(Convert.ToDouble(new Expression(FModel.modelF3)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_P <= 240.0)
+doubleList.Add(Convert.ToDouble(new Expression(PModel.modelP1)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_P > 240.0 &&
+this.val_P <= 350.0)
+doubleList.Add(Convert.ToDouble(new Expression(PModel.modelP2)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_P > 350.0)
+doubleList.Add(Convert.ToDouble(new Expression(PModel.modelP3)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_B <= 240.0)
+doubleList.Add(Convert.ToDouble(new Expression(BModel.modelB1)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+if (this.val_B > 240.0)
+doubleList.Add(Convert.ToDouble(new Expression(BModel.modelB2)
+{
+Parameters = {
+["x"] = ((object) val_X),
+["y"] = ((object) val_Y)
+}
+}.Evaluate()));
+return doubleList;
+}
+}
+}
+
+using Extreme.Mathematics;
+
+namespace RecipeSoftware
+{
+internal class FModel
+{
+public static string modelF1 = "388 - 1479.9 * x - 920.1 * y + 1600.1 * x * y + 1599.9 * Pow(x, 2) + 1000.1 * Pow(y, 2)";
+public static string modelF2 = "440.81 - 1022.388 * x - 757.82 * y";
+public static string modelF3 = "1221.67 - 5309.76 * x - 5149.04 * y";
+
+public static void GetFModelOne(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 388.0 - value;
+f[0] = num - 1479.9 * x[0] - 920.1 * x[1] + 1600.1 * x[0] * x[1] + 1599.9 * x[0] * x[0] + 1000.1 * x[1] * x[1];
+}
+
+public static void GetFJacobianOne(ref Vector<double> x, ref Matrix<double> J)
+{
+J[0, 0] = 3199.8 * x[0] + 1600.1 * x[1] - 1479.9;
+J[0, 1] = 1600.1 * x[0] + 2000.2 * x[1] - 920.1;
+}
+
+public static void GetFModelTwo(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 440.81 - value;
+f[0] = num - 1022.388 * x[0] - 757.82 * x[1];
+}
+
+public static void GetFJacobianTwo(ref Vector<double> x, ref Matrix<double> J)
+{
+J[0, 0] = -1022.388;
+J[0, 1] = -757.82;
+}
+
+public static void GetFModelThree(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 1221.67 - value;
+f[0] = num - 5309.76 * x[0] - 5149.04 * x[1];
+}
+
+public static void GetFJacobianThree(ref Vector<double> x, ref Matrix<double> J)
+{
+J[0, 0] = -5309.76;
+J[0, 1] = -5149.04;
+}
+}
+}
+
+
+using Extreme.Mathematics.Optimization;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace RecipeSoftware
+{
+public class Form1 : Form
+{
+private Controller contrKonkr = new Controller();
+private Controller contrDiap = new Controller();
+private List<Log> log_list = new List<Log>();
+private IContainer components = (IContainer) null;
+private TextBox textBox2;
+private TextBox textBox3;
+private TextBox textBox4;
+private Button button1;
+private GroupBox groupBox1;
+private GroupBox groupBox2;
+private TextBox textBox5;
+private Button button2;
+private TextBox textBox6;
+private TextBox textBox7;
+private RadioButton radioButton1;
+private RadioButton radioButton2;
+private GroupBox groupBox3;
+private TextBox textBox10;
+private TextBox textBox9;
+private TextBox textBox8;
+private GroupBox groupBox4;
+private Label labelY;
+private Label labelX;
+private Label label5;
+private Label label4;
+private Label labelB;
+private Label labelP;
+private Label labelF;
+private Label label3;
+private Label label2;
+private Label label1;
+private Label label6;
+private Label label7;
+private TrackBar trackBar2;
+private TrackBar trackBar1;
+private ProgressBar progressBar1;
+private Label label8;
+private Label label19;
+private Label label18;
+private Label label17;
+private Label labelFD;
+private Label labelPD;
+private Label labelBD;
+private Label label13;
+private Label label12;
+private Label labelXD;
+private Label labelYD;
+private Label label23;
+private Label label22;
+private Label label21;
+private Label labelFDC;
+private Label labelPDC;
+private Label labelBDC;
+private Label label14;
+private TextBox textBox1;
+private Label label11;
+private Label labelXDC;
+private Label labelYDC;
+private Label label24;
+private Label label25;
+private Label labelSUM;
+private Label label10;
+private GroupBox groupBox5;
+private Button button3;
+private Label label16;
+private TextBox textBox11;
+private Label label15;
+private Label label9;
+private NumericUpDown numericUpDown1;
+private ComboBox comboBox1;
+private Label label27;
+private Label label26;
+private Label label20;
+private Label label33;
+private Label label32;
+private Label label31;
+private Label label28;
+private Label label29;
+private Label label30;
+private Label label34;
+private Button button4;
+private GroupBox groupBox6;
+private Label label36;
+private Label label35;
+private TextBox textBox13;
+private TextBox textBox12;
+private Label label37;
+private Label label38;
+
+public Form1()
+{
+this.InitializeComponent();
+this.radioButton1.Checked = true;
+this.label8.Visible = false;
+this.progressBar1.Visible = false;
+this.groupBox6.Visible = false;
+this.button3.Enabled = false;
+this.button4.Enabled = false;
+this.textBox1.TextAlign = HorizontalAlignment.Center;
+this.textBox2.TextAlign = HorizontalAlignment.Center;
+this.textBox3.TextAlign = HorizontalAlignment.Center;
+this.textBox4.TextAlign = HorizontalAlignment.Center;
+this.textBox5.TextAlign = HorizontalAlignment.Center;
+this.textBox6.TextAlign = HorizontalAlignment.Center;
+this.textBox7.TextAlign = HorizontalAlignment.Center;
+this.textBox8.TextAlign = HorizontalAlignment.Center;
+this.textBox9.TextAlign = HorizontalAlignment.Center;
+this.textBox10.TextAlign = HorizontalAlignment.Center;
+this.textBox11.TextAlign = HorizontalAlignment.Center;
+this.textBox12.TextAlign = HorizontalAlignment.Center;
+this.textBox13.TextAlign = HorizontalAlignment.Center;
+this.textBox2.MaxLength = 8;
+this.textBox3.MaxLength = 8;
+this.textBox4.MaxLength = 8;
+this.textBox5.MaxLength = 8;
+this.textBox6.MaxLength = 8;
+this.textBox7.MaxLength = 8;
+this.textBox8.MaxLength = 8;
+this.textBox9.MaxLength = 8;
+this.textBox10.MaxLength = 8;
+this.textBox11.MaxLength = 8;
+this.textBox12.MaxLength = 7;
+this.textBox13.MaxLength = 7;
+this.textBox2.Text = "80.0";
+this.textBox3.Text = "220.0";
+this.textBox4.Text = "130.0";
+this.textBox5.Text = "80.0";
+this.textBox6.Text = "90.0";
+this.textBox7.Text = "220.0";
+this.textBox8.Text = "230.0";
+this.textBox9.Text = "200.0";
+this.textBox10.Text = "220.0";
+this.textBox12.Text = "100";
+this.textBox13.Text = "100";
+}
+
+private async void button1_Click(object sender, EventArgs e)
+{
+if (this.textBox2.Text.Length > 0 && this.textBox3.Text.Length > 0 && this.textBox4.Text.Length > 0)
+{
+CultureInfo temp_culture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+this.contrKonkr.val_F = double.Parse(this.textBox2.Text);
+this.contrKonkr.val_P = double.Parse(this.textBox3.Text);
+this.contrKonkr.val_B = double.Parse(this.textBox4.Text);
+Thread.CurrentThread.CurrentCulture = temp_culture;
+LeastSquaresOptimizer trr = (LeastSquaresOptimizer) new TrustRegionReflectiveOptimizer();
+trr = await this.contrKonkr.FindSolutionAsync();
+List<double> list = this.contrKonkr.SubstituteValue(trr.Minimum[0], trr.Minimum[1]);
+this.labelF.Text = Math.Round(list[0], 3).ToString();
+this.labelP.Text = Math.Round(list[1], 3).ToString();
+this.labelB.Text = Math.Round(list[2], 3).ToString();
+Label labelX = this.labelX;
+double num = Math.Round(trr.Minimum[0], 4);
+string str1 = num.ToString();
+labelX.Text = str1;
+Label labelY = this.labelY;
+num = Math.Round(trr.Minimum[1], 4);
+string str2 = num.ToString();
+labelY.Text = str2;
+this.trackBar1.Value = Convert.ToInt32(trr.Minimum[0] * 1000.0);
+this.trackBar2.Value = Convert.ToInt32(trr.Minimum[1] * 1000.0);
+this.groupBox6.Visible = true;
+temp_culture = (CultureInfo) null;
+trr = (LeastSquaresOptimizer) null;
+list = (List<double>) null;
+}
+else
+{
+int num1 = (int) MessageBox.Show("Заполните все необходимые поля.");
+}
+}
+
+private List<double> PushList(double val, double val_max)
+{
+List<double> doubleList = new List<double>();
+int num = 0;
+while (val != val_max)
+{
+if (val + (double) num > val_max || val + (double) num == val_max)
+{
+doubleList.Add(val_max);
+goto label_6;
+}
+else
+{
+doubleList.Add(val + (double) num);
+num += 5;
+}
+}
+doubleList.Add(val_max);
+label_6:
+return doubleList;
+}
+
+public async Task<List<Log» SubstituteDiapason(
+ProgressBar progressBar,
+List<double> listF,
+List<double> listP,
+List<double> listB)
+{
+List<Log> lg_lst = new List<Log>();
+for (int i = 0; i < listF.Count; ++i)
+{
+for (int j = 0; j < listP.Count; ++j)
+{
+for (int k = 0; k < listB.Count; ++k)
+{
+this.contrDiap.val_F = listF[i];
+this.contrDiap.val_P = listP[j];
+this.contrDiap.val_B = listB[k];
+LeastSquaresOptimizer trr = (LeastSquaresOptimizer) new TrustRegionReflectiveOptimizer();
+trr = await this.contrDiap.FindSolutionAsync();
+List<double> l_sol = this.contrDiap.SubstituteValue(trr.Minimum[0], trr.Minimum[1]);
+Log log = new Log(Math.Round(listF[i], 4), Math.Round(listP[j], 4), Math.Round(listB[k], 4), trr.Minimum[0], trr.Minimum[1], Math.Round(l_sol[0], 4), Math.Round(l_sol[1], 4), Math.Round(l_sol[2], 4));
+lg_lst.Add(log);
+progressBar.Increment(1);
+trr = (LeastSquaresOptimizer) null;
+l_sol = (List<double>) null;
+log = (Log) null;
+}
+}
+}
+return lg_lst;
+}
+
+private async void button2_Click(object sender, EventArgs e)
+{
+if (this.textBox5.Text.Length > 0 && this.textBox6.Text.Length > 0 && this.textBox7.Text.Length > 0 && this.textBox8.Text.Length > 0 && this.textBox9.Text.Length > 0 && this.textBox10.Text.Length > 0 && this.textBox12.Text.Length > 0 && this.textBox13.Text.Length > 0 &&
+this.checkDiapason(this.textBox5, this.textBox6, "фильтрации") && this.checkDiapason(this.textBox7, this.textBox8, "растекаемости") && this.checkDiapason(this.textBox9, this.textBox10, "вязскости") && this.checkDiapason20(this.textBox5, this.textBox6, "фильтрации") && this.checkDiapason20(this.textBox7, this.textBox8, "растекаемости") && this.checkDiapason20(this.textBox9, this.textBox10, "вязскости"))
+{
+this.button3.Enabled = false;
+this.button4.Enabled = false;
+this.label8.Visible = true;
+this.progressBar1.Visible = true;
+this.textBox1.Clear();
+this.progressBar1.Value = 0;
+this.log_list.Clear();
+CultureInfo temp_culture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+double valF = double.Parse(this.textBox5.Text);
+double valFMax = double.Parse(this.textBox6.Text);
+double valP = double.Parse(this.textBox7.Text);
+double valPMax = double.Parse(this.textBox8.Text);
+double valB = double.Parse(this.textBox9.Text);
+double valBMax = double.Parse(this.textBox10.Text);
+Thread.CurrentThread.CurrentCulture = temp_culture;
+List<double> listF = this.PushList(valF, valFMax);
+List<double> listP = this.PushList(valP, valPMax);
+List<double> listB = this.PushList(valB, valBMax);
+int count = 0;
+for (int i = 0; i < listF.Count; ++i)
+{
+for (int j = 0; j < listP.Count; ++j)
+{
+for (int k = 0; k < listB.Count; ++k)
+++count;
+}
+}
+this.progressBar1.Maximum = count;
+this.progressBar1.Step = 1;
+Form1 form1 = this;
+List<Log> logList1 = form1.log_list;
+List<Log> logList = await this.SubstituteDiapason(this.progressBar1, listF, listP, listB);
+form1.log_list = logList;
+form1 = (Form1) null;
+logList = (List<Log>) null;
+int num1 = (int) MessageBox.Show("Диапазон расчитан!");
+this.label8.Visible = false;
+this.progressBar1.Visible = false;
+List<double> minSumList = new List<double>();
+List<double> minCenaList = new List<double>();
+double min = 999999.0;
+double minSum = 999999.0;
+double sumRes = 0.0;
+foreach (Log l in this.log_list)
+{
+if (min > l.SUM)
+{
+min = l.SUM;
+minSumList.Clear();
+minSumList.Add(l.val_X);
+minSumList.Add(l.val_Y);
+valF = l.val_F;
+valP = l.val_P;
+valB = l.val_B;
+}
+if (minSum > this.contrDiap.saleX * l.val_X + this.contrDiap.saleY * l.val_Y)
+{
+minSum = this.contrDiap.saleX * l.val_X + this.contrDiap.saleY * l.val_Y;
+sumRes = minSum;
+minCenaList.Clear();
+minCenaList.Add(l.val_X);
+minCenaList.Add(l.val_Y);
+}
+TextBox textBox1_1 = this.textBox1;
+textBox1_1.Text = textBox1_1.Text + "----------------------------" + Environment.NewLine;
+TextBox textBox1_2 = this.textBox1;
+textBox1_2.Text = textBox1_2.Text + "Ф: " + (object) Math.Round(l.val_F, 4) + ", Р: " + (object) Math.Round(l.val_P, 4) + ", В: " + (object) Math.Round(l.val_B, 4) + Environment.NewLine;
+TextBox textBox1_3 = this.textBox1;
+textBox1_3.Text = textBox1_3.Text + "ПФ: " + (object) Math.Round(l.val_X, 4) + Environment.NewLine;
+TextBox textBox1_4 = this.textBox1;
+textBox1_4.Text = textBox1_4.Text + "ПЛ: " + (object) Math.Round(l.val_Y, 4) + Environment.NewLine;
+TextBox textBox1_5 = this.textBox1;
+textBox1_5.Text = textBox1_5.Text + "Ф: " + (object) Math.Round(l.val_resF, 4) + Environment.NewLine;
+TextBox textBox1_6 = this.textBox1;
+textBox1_6.Text = textBox1_6.Text + "Р: " + (object) Math.Round(l.val_resP, 4) + Environment.NewLine;
+TextBox textBox1_7 = this.textBox1;
+textBox1_7.Text = textBox1_7.Text + "В: " + (object) Math.Round(l.val_resB, 4) + Environment.NewLine;
+TextBox textBox1_8 = this.textBox1;
+textBox1_8.Text = textBox1_8.Text + "----------------------------" + Environment.NewLine;
+}
+this.contrDiap.val_F = valF;
+this.contrDiap.val_P = valP;
+this.contrDiap.val_B = valB;
+TextBox textBox1_9 = this.textBox1;
+textBox1_9.Text = textBox1_9.Text + "Минимальные значения Пф и Пл: " + Environment.NewLine;
+TextBox textBox1_10 = this.textBox1;
+textBox1_10.Text = textBox1_10.Text + (object) Math.Round(minSumList[0], 4) + " - " + (object)
+Math.Round(minSumList[1], 4) + Environment.NewLine;
+List<double> listResSum = this.contrDiap.SubstituteValue(minSumList[0], minSumList[1]);
+List<double> listCenaSum = this.contrDiap.SubstituteValue(minCenaList[0], minCenaList[1]);
+TextBox textBox1_11 = this.textBox1;
+textBox1_11.Text = textBox1_11.Text + "Ф: " + (object) Math.Round(listResSum[0], 3) + Environment.NewLine;
+TextBox textBox1_12 = this.textBox1;
+textBox1_12.Text = textBox1_12.Text + "Р: " + (object) Math.Round(listResSum[1], 3) + Environment.NewLine;
+TextBox textBox1_13 = this.textBox1;
+textBox1_13.Text = textBox1_13.Text + "В: " + (object) Math.Round(listResSum[2], 3) + Environment.NewLine;
+Label labelFd = this.labelFD;
+double num2 = Math.Round(listResSum[0], 3);
+string str1 = num2.ToString();
+labelFd.Text = str1;
+Label labelPd = this.labelPD;
+num2 = Math.Round(listResSum[1], 3);
+string str2 = num2.ToString();
+labelPd.Text = str2;
+Label labelBd = this.labelBD;
+num2 = Math.Round(listResSum[2], 3);
+string str3 = num2.ToString();
+labelBd.Text = str3;
+Label labelXd = this.labelXD;
+num2 = Math.Round(minSumList[0], 4);
+string str4 = num2.ToString();
+labelXd.Text = str4;
+Label labelYd = this.labelYD;
+num2 = Math.Round(minSumList[1], 4);
+string str5 = num2.ToString();
+labelYd.Text = str5;
+Label labelFdc = this.labelFDC;
+num2 = Math.Round(listCenaSum[0], 3);
+string str6 = num2.ToString();
+labelFdc.Text = str6;
+Label labelPdc = this.labelPDC;
+num2 = Math.Round(listCenaSum[1], 3);
+string str7 = num2.ToString();
+labelPdc.Text = str7;
+Label labelBdc = this.labelBDC;
+num2 = Math.Round(listCenaSum[2], 3);
+string str8 = num2.ToString();
+labelBdc.Text = str8;
+Label labelXdc = this.labelXDC;
+num2 = Math.Round(minCenaList[0], 4);
+string str9 = num2.ToString();
+labelXdc.Text = str9;
+Label labelYdc = this.labelYDC;
+num2 = Math.Round(minCenaList[1], 4);
+string str10 = num2.ToString();
+labelYdc.Text = str10;
+Label labelSum = this.labelSUM;
+num2 = Math.Round(sumRes, 4);
+string str11 = num2.ToString() + " руб.";
+labelSum.Text = str11;
+this.button3.Enabled = true;
+temp_culture = (CultureInfo) null;
+listF = (List<double>) null;
+listP = (List<double>) null;
+listB = (List<double>) null;
+minSumList = (List<double>) null;
+minCenaList = (List<double>) null;
+listResSum = (List<double>) null;
+listCenaSum = (List<double>) null;
+}
+else
+{
+int num = (int) MessageBox.Show("Заполните все необходимые поля или проверьте корректность заполенния диапазонов.");
+}
+}
+
+private bool checkDiapason(TextBox txtBox1, TextBox txtBox2, string svoistvo)
+{
+if (txtBox1.Text.Length <= 0 || txtBox2.Text.Length <= 0)
+return false;
+CultureInfo currentCulture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+double num1 = double.Parse(txtBox1.Text);
+double num2 = double.Parse(txtBox2.Text);
+Thread.CurrentThread.CurrentCulture = currentCulture;
+if (num1 <= num2)
+return true;
+int num3 = (int) MessageBox.Show("Значение " + svoistvo + " слева, не может быть больше значения справа!");
+return false;
+}
+
+private bool checkDiapason20(TextBox txtBox1, TextBox txtBox2, string svoistvo)
+{
+if (txtBox1.Text.Length <= 0 || txtBox2.Text.Length <= 0)
+return false;
+CultureInfo currentCulture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+double num1 = double.Parse(txtBox1.Text);
+double num2 = double.Parse(txtBox2.Text);
+Thread.CurrentThread.CurrentCulture = currentCulture;
+if (num2 - num1 <= 20.0)
+return true;
+int num3 = (int) MessageBox.Show("Разница между правым и левым значением, не может быть более 20.");
+return false;
+}
+
+private void button3_Click(object sender, EventArgs e)
+{
+if (this.comboBox1.SelectedItem != null && this.textBox11.Text.Length > 0 && this.log_list.Count > 0)
+{
+CultureInfo currentCulture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture =
+CultureInfo.CreateSpecificCulture("en-US");
+double num = double.Parse(this.textBox11.Text);
+Thread.CurrentThread.CurrentCulture = currentCulture;
+List<Log> logList = new List<Log>();
+if ("Фильтрация" == this.comboBox1.SelectedItem.ToString())
+{
+foreach (Log log1 in this.log_list)
+{
+if (log1.val_resF > num - Convert.ToDouble(this.numericUpDown1.Value) && log1.val_resF < num + Convert.ToDouble(this.numericUpDown1.Value))
+{
+Log log2 = new Log(log1.val_F, log1.val_P, log1.val_B, log1.val_X, log1.val_Y, log1.val_resF, log1.val_resP, log1.val_resB);
+logList.Add(log2);
+}
+}
+}
+if ("Растекаемость" == this.comboBox1.SelectedItem.ToString())
+{
+foreach (Log log3 in this.log_list)
+{
+if (log3.val_resP > num - Convert.ToDouble(this.numericUpDown1.Value) && log3.val_resP < num + Convert.ToDouble(this.numericUpDown1.Value))
+{
+Log log4 = new Log(log3.val_F, log3.val_P, log3.val_B, log3.val_X, log3.val_Y, log3.val_resF, log3.val_resP, log3.val_resB);
+logList.Add(log4);
+}
+}
+}
+if ("Вязкость" == this.comboBox1.SelectedItem.ToString())
+{
+foreach (Log log5 in this.log_list)
+{
+if (log5.val_resB > num - Convert.ToDouble(this.numericUpDown1.Value) && log5.val_resB < num + Convert.ToDouble(this.numericUpDown1.Value))
+{
+Log log6 = new Log(log5.val_F, log5.val_P, log5.val_B, log5.val_X, log5.val_Y, log5.val_resF, log5.val_resP, log5.val_resB);
+logList.Add(log6);
+}
+}
+}
+this.textBox1.Clear();
+foreach (Log log in logList)
+{
+TextBox textBox1_1 = this.textBox1;
+textBox1_1.Text = textBox1_1.Text + "---------------------" + Environment.NewLine;
+TextBox textBox1_2 = this.textBox1;
+textBox1_2.Text = textBox1_2.Text + "Ф: " + (object) Math.Round(log.val_F, 4) + ", Р: " + (object) Math.Round(log.val_P, 4) + ", В: " + (object) Math.Round(log.val_B, 4) + Environment.NewLine;
+TextBox textBox1_3 = this.textBox1;
+textBox1_3.Text = textBox1_3.Text + "ПФ: " + (object) Math.Round(log.val_X, 4) + Environment.NewLine;
+TextBox textBox1_4 = this.textBox1;
+textBox1_4.Text = textBox1_4.Text + "ПЛ: " + (object) Math.Round(log.val_Y, 4) + Environment.NewLine;
+TextBox textBox1_5 = this.textBox1;
+textBox1_5.Text = textBox1_5.Text + "Ф: " + (object) Math.Round(log.val_resF, 4) + Environment.NewLine;
+TextBox textBox1_6 = this.textBox1;
+textBox1_6.Text = textBox1_6.Text + "Р: " + (object) Math.Round(log.val_resP, 4) + Environment.NewLine;
+TextBox textBox1_7 = this.textBox1;
+textBox1_7.Text = textBox1_7.Text + "В: " + (object) Math.Round(log.val_resB, 4) + Environment.NewLine;
+TextBox textBox1_8 = this.textBox1;
+textBox1_8.Text = textBox1_8.Text + "---------------------" + Environment.NewLine;
+}
+this.button4.Enabled = true;
+}
+else
+{
+int num1 = (int) MessageBox.Show("Имеются не заполненные поля или отсутствует список решений для поиска.");
+}
+}
+
+private void button4_Click(object sender, EventArgs e)
+{
+if (this.log_list.Count <= 0)
+return;
+foreach (Log log in this.log_list)
+{
+TextBox textBox1_1 = this.textBox1;
+textBox1_1.Text = textBox1_1.Text + "---------------------" + Environment.NewLine;
+TextBox textBox1_2 = this.textBox1;
+textBox1_2.Text = textBox1_2.Text + "Ф: " + (object) Math.Round(log.val_F, 4) + ", Р: " + (object) Math.Round(log.val_P, 4) + ", В: " + (object) Math.Round(log.val_B, 4) + Environment.NewLine;
+TextBox textBox1_3 = this.textBox1;
+textBox1_3.Text = textBox1_3.Text + "ПФ: " + (object) Math.Round(log.val_X, 4) + Environment.NewLine;
+TextBox textBox1_4 = this.textBox1;
+textBox1_4.Text = textBox1_4.Text + "ПЛ: " + (object) Math.Round(log.val_Y, 4) + Environment.NewLine;
+TextBox textBox1_5 = this.textBox1;
+textBox1_5.Text = textBox1_5.Text + "Ф: " + (object) Math.Round(log.val_resF, 4) + Environment.NewLine;
+TextBox textBox1_6 = this.textBox1;
+textBox1_6.Text = textBox1_6.Text + "Р: " + (object) Math.Round(log.val_resP, 4) + Environment.NewLine;
+TextBox textBox1_7 = this.textBox1;
+textBox1_7.Text = textBox1_7.Text + "В: " + (object) Math.Round(log.val_resB, 4) + Environment.NewLine;
+TextBox textBox1_8 =
+this.textBox1;
+textBox1_8.Text = textBox1_8.Text + "---------------------" + Environment.NewLine;
+}
+}
+
+private void textBox_KeyPress(object sender, KeyPressEventArgs e)
+{
+char keyChar = e.KeyChar;
+if (char.IsDigit(keyChar) || keyChar == '\b' || keyChar == '.')
+return;
+e.Handled = true;
+}
+
+private void trackBar1_Scroll(object sender, EventArgs e)
+{
+this.labelX.Text = (Convert.ToDouble(this.trackBar1.Value) / 1000.0).ToString();
+List<double> doubleList = this.contrKonkr.SubstituteValue(double.Parse(this.labelX.Text), double.Parse(this.labelY.Text));
+this.labelF.Text = Math.Round(doubleList[0], 4).ToString();
+this.labelP.Text = Math.Round(doubleList[1], 4).ToString();
+this.labelB.Text = Math.Round(doubleList[2], 4).ToString();
+}
+
+private void trackBar2_Scroll(object sender, EventArgs e)
+{
+this.labelY.Text = (Convert.ToDouble(this.trackBar2.Value) / 1000.0).ToString();
+List<double> doubleList = this.contrKonkr.SubstituteValue(double.Parse(this.labelX.Text), double.Parse(this.labelY.Text));
+this.labelF.Text = Math.Round(doubleList[0], 4).ToString();
+this.labelP.Text = Math.Round(doubleList[1], 4).ToString();
+this.labelB.Text = Math.Round(doubleList[2], 4).ToString();
+}
+
+private void textBox_TextChanged(TextBox txtBox)
+{
+if (!(txtBox.Text.Trim() != "") || Convert.ToDouble(Regex.Match(txtBox.Text, "\\d+").Value) <= 500.0)
+return;
+int num = (int) MessageBox.Show("Значение для расчетов не может быть более 500!");
+txtBox.Text = "500.0";
+}
+
+private void textBox2_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox2);
+
+private void textBox3_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox3);
+
+private void textBox4_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox4);
+
+private void textBox5_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox5);
+
+private void textBox6_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox6);
+
+private void textBox7_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox7);
+
+private void textBox8_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox8);
+
+private void textBox9_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox9);
+
+private void textBox10_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox10);
+
+private void textBox11_TextChanged(object sender, EventArgs e) => this.textBox_TextChanged(this.textBox11);
+
+private void textBox12_TextChanged(object sender, EventArgs e)
+{
+try
+{
+CultureInfo currentCulture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+this.contrDiap.saleX = double.Parse(this.textBox12.Text);
+Thread.CurrentThread.CurrentCulture = currentCulture;
+this.label14.Text = "Пф: " + this.contrDiap.saleX.ToString() + " руб.";
+this.label11.Text = "Пл: " + this.contrDiap.saleY.ToString() + " руб.";
+}
+catch
+{
+}
+}
+
+private void textBox13_TextChanged(object sender, EventArgs e)
+{
+try
+{
+CultureInfo currentCulture = Thread.CurrentThread.CurrentCulture;
+Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
+this.contrDiap.saleY = double.Parse(this.textBox13.Text);
+Thread.CurrentThread.CurrentCulture = currentCulture;
+this.label14.Text = "Пф: " + this.contrDiap.saleX.ToString() + " руб.";
+this.label11.Text = "Пл: " + this.contrDiap.saleY.ToString() + " руб.";
+}
+catch
+{
+}
+}
+
+private void radioButton2_CheckedChanged(object sender, EventArgs e)
+{
+this.groupBox1.Visible = false;
+this.groupBox2.Visible = true;
+this.groupBox4.Visible = false;
+this.groupBox5.Visible = true;
+}
+
+private void radioButton1_CheckedChanged(object sender, EventArgs e)
+{
+this.groupBox1.Visible = true;
+this.groupBox2.Visible = false;
+this.groupBox4.Visible = true;
+this.groupBox5.Visible = false;
+}
+
+protected override void Dispose(bool disposing)
+{
+if (disposing && this.components != null)
+this.components.Dispose();
+base.Dispose(disposing);
+}
+
+private void InitializeComponent()
+{
+ComponentResourceManager componentResourceManager = new ComponentResourceManager(typeof (Form1));
+this.textBox2 = new TextBox();
+this.textBox3 = new TextBox();
+this.textBox4 = new TextBox();
+this.button1 = new Button();
+this.groupBox1 = new GroupBox();
+this.label27 = new Label();
+this.label26 = new Label();
+this.label20 = new Label();
+this.groupBox2 = new GroupBox();
+this.label36 = new Label();
+this.label35 = new Label();
+this.textBox13 = new TextBox();
+this.textBox12 = new TextBox();
+this.label33 = new Label();
+this.label32 = new Label();
+this.label31 = new Label();
+this.label28 = new Label();
+this.label29 = new Label();
+this.label30 = new Label();
+this.textBox10 = new TextBox();
+this.textBox9 = new TextBox();
+this.textBox8 = new TextBox();
+this.textBox5 = new TextBox();
+this.button2 = new Button();
+this.textBox6 = new TextBox();
+this.textBox7 = new TextBox();
+this.radioButton1 = new RadioButton();
+this.radioButton2 = new RadioButton();
+this.groupBox3 = new GroupBox();
+this.label8 = new Label();
+this.progressBar1 = new ProgressBar();
+this.groupBox4 = new GroupBox();
+this.groupBox6 = new GroupBox();
+this.trackBar1 = new TrackBar();
+this.trackBar2 = new TrackBar();
+this.label6 = new Label();
+this.label7 = new Label();
+this.label34 = new Label();
+this.labelY = new Label();
+this.labelX = new Label();
+this.label5 = new Label();
+this.label4 = new Label();
+this.labelB = new Label();
+this.labelP = new Label();
+this.labelF = new Label();
+this.label3 = new Label();
+this.label2 = new Label();
+this.label1 = new Label();
+this.label19 = new Label();
+this.label18 = new Label();
+this.label17 = new Label();
+this.labelFD = new Label();
+this.labelPD = new Label();
+this.labelBD = new Label();
+this.label13 = new Label();
+this.label12 = new Label();
+this.labelXD = new Label();
+this.labelYD = new Label();
+this.label23 = new Label();
+this.label22 = new Label();
+this.label21 = new Label();
+this.labelFDC = new Label();
+this.labelPDC = new Label();
+this.labelBDC = new Label();
+this.label14 = new Label();
+this.textBox1 = new TextBox();
+this.label11 = new Label();
+this.labelXDC = new Label();
+this.labelYDC = new Label();
+this.label24 = new Label();
+this.label25 = new Label();
+this.labelSUM = new Label();
+this.label10 = new Label();
+this.groupBox5 = new GroupBox();
+this.button4 = new Button();
+this.button3 = new Button();
+this.label16 = new Label();
+this.textBox11 = new TextBox();
+this.label15 = new Label();
+this.label9 = new Label();
+this.numericUpDown1 = new NumericUpDown();
+this.comboBox1 = new ComboBox();
+this.label37 = new Label();
+this.label38 = new Label();
+this.groupBox1.SuspendLayout();
+this.groupBox2.SuspendLayout();
+this.groupBox3.SuspendLayout();
+this.groupBox4.SuspendLayout();
+this.groupBox6.SuspendLayout();
+this.trackBar1.BeginInit();
+this.trackBar2.BeginInit();
+this.groupBox5.SuspendLayout();
+this.numericUpDown1.BeginInit();
+this.SuspendLayout();
+this.textBox2.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox2.Location = new Point(172, 40);
+this.textBox2.Name = "textBox2";
+this.textBox2.Size = new Size(119, 22);
+this.textBox2.TabIndex = 1;
+this.textBox2.TextChanged += new EventHandler(this.textBox2_TextChanged);
+this.textBox2.KeyPress += new KeyPressEventHandler(this.textBox_KeyPress);
+this.textBox3.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox3.Location = new Point(172, 81);
+this.textBox3.Name = "textBox3";
+this.textBox3.Size = new Size(119, 22);
+this.textBox3.TabIndex = 2;
+this.textBox3.TextChanged += new EventHandler(this.textBox3_TextChanged);
+this.textBox3.KeyPress += new
+KeyPressEventHandler(this.textBox_KeyPress);
+this.textBox4.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox4.Location = new Point(172, 122);
+this.textBox4.Name = "textBox4";
+this.textBox4.Size = new Size(119, 22);
+this.textBox4.TabIndex = 3;
+this.textBox4.TextChanged += new EventHandler(this.textBox4_TextChanged);
+this.textBox4.KeyPress += new KeyPressEventHandler(this.textBox_KeyPress);
+this.button1.FlatStyle = FlatStyle.Popup;
+this.button1.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.button1.Location = new Point(172, 157);
+this.button1.Name = "button1";
+this.button1.Size = new Size(119, 29);
+this.button1.TabIndex = 4;
+this.button1.Text = "Рассчитать";
+this.button1.UseVisualStyleBackColor = true;
+this.button1.Click += new EventHandler(this.button1_Click);
+this.groupBox1.Controls.Add((Control) this.label27);
+this.groupBox1.Controls.Add((Control) this.label26);
+this.groupBox1.Controls.Add((Control) this.label20);
+this.groupBox1.Controls.Add((Control) this.textBox2);
+this.groupBox1.Controls.Add((Control) this.button1);
+this.groupBox1.Controls.Add((Control) this.textBox3);
+this.groupBox1.Controls.Add((Control) this.textBox4);
+this.groupBox1.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.groupBox1.Location = new Point(392, 5);
+this.groupBox1.Name = "groupBox1";
+this.groupBox1.Size = new Size(385, 200);
+this.groupBox1.TabIndex = 5;
+this.groupBox1.TabStop = false;
+this.groupBox1.Text = "Конкретные значения";
+this.label27.AutoSize = true;
+this.label27.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label27.Location = new Point(104, 118);
+this.label27.Name = "label27";
+this.label27.Size = new Size(62, 34);
+this.label27.TabIndex = 39;
+this.label27.Text = "Вязкость:\r\n(мПа*с)";
+this.label26.AutoSize = true;
+this.label26.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label26.Location = new Point(60, 78);
+this.label26.Name = "label26";
+this.label26.Size = new Size(107, 34);
+this.label26.TabIndex = 38;
+this.label26.Text = "Растекаемость:\r\n (мм)";
+this.label20.AutoSize = true;
+this.label20.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label20.Location = new Point(73, 35);
+this.label20.Name = "label20";
+this.label20.Size = new Size(93, 34);
+this.label20.TabIndex = 37;
+this.label20.Text = "Фильтрация:\r\n(см3 /30 мин)";
+this.groupBox2.Controls.Add((Control) this.label36);
+this.groupBox2.Controls.Add((Control) this.label35);
+this.groupBox2.Controls.Add((Control) this.textBox13);
+this.groupBox2.Controls.Add((Control) this.textBox12);
+this.groupBox2.Controls.Add((Control) this.label33);
+this.groupBox2.Controls.Add((Control) this.label32);
+this.groupBox2.Controls.Add((Control) this.label31);
+this.groupBox2.Controls.Add((Control) this.label28);
+this.groupBox2.Controls.Add((Control) this.label29);
+this.groupBox2.Controls.Add((Control) this.label30);
+this.groupBox2.Controls.Add((Control) this.textBox10);
+this.groupBox2.Controls.Add((Control) this.textBox9);
+this.groupBox2.Controls.Add((Control) this.textBox8);
+this.groupBox2.Controls.Add((Control) this.textBox5);
+this.groupBox2.Controls.Add((Control) this.button2);
+this.groupBox2.Controls.Add((Control) this.textBox6);
+this.groupBox2.Controls.Add((Control) this.textBox7);
+this.groupBox2.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.groupBox2.Location = new Point(392, 3);
+this.groupBox2.Name = "groupBox2";
+this.groupBox2.Size = new Size(385, 202);
+this.groupBox2.TabIndex = 6;
+this.groupBox2.TabStop = false;
+this.groupBox2.Text = "Диапазон значений";
+this.label36.AutoSize = true;
+this.label36.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label36.Location
+= new Point(122, 153);
+this.label36.Name = "label36";
+this.label36.Size = new Size(60, 17);
+this.label36.TabIndex = 47;
+this.label36.Text = "Цена Пл:";
+this.label35.AutoSize = true;
+this.label35.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label35.Location = new Point(42, 153);
+this.label35.Name = "label35";
+this.label35.Size = new Size(67, 17);
+this.label35.TabIndex = 38;
+this.label35.Text = "Цена Пф:";
+this.textBox13.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox13.Location = new Point(125, 173);
+this.textBox13.Name = "textBox13";
+this.textBox13.Size = new Size(66, 23);
+this.textBox13.TabIndex = 46;
+this.textBox13.TextChanged += new EventHandler(this.textBox13_TextChanged);
+this.textBox13.KeyPress += new KeyPressEventHandler(this.textBox_KeyPress);
+this.textBox12.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox12.Location = new Point(45, 173);
+this.textBox12.Name = "textBox12";
+this.textBox12.Size = new Size(66, 23);
+this.textBox12.TabIndex = 45;
+this.textBox12.TextChanged += new EventHandler(this.textBox12_TextChanged);
+this.textBox12.KeyPress += new KeyPressEventHandler(this.textBox_KeyPress);
+this.label33.AutoSize = true;
+this.label33.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label33.Location = new Point(257, 117);
+this.label33.Name = "label33";
+this.label33.Size = new Size(16, 19);
+this.label33.TabIndex = 44;
+this.label33.Text = "-";
+this.label32.AutoSize = true;
+this.label32.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label32.Location = new Point(257, 76);
+this.label32.Name = "label32";
+this.label32.Size = new Size(16, 19);
+this.label32.TabIndex = 43;
+this.label32.Text = "-";
+this.label31.AutoSize = true;
+this.label31.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label31.Location = new Point(257, 35);
+this.label31.Name = "label31";
+this.label31.Size = new Size(16, 19);
+this.label31.TabIndex = 37;
+this.label31.Text = "-";
+this.label28.AutoSize = true;
+this.label28.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label28.Location = new Point(122, 113);
+this.label28.Name = "label28";
+this.label28.Size = new Size(62, 34);
+this.label28.TabIndex = 42;
+this.label28.Text = "Вязкость:\r\n(мПа*с)\r\n";
+this.label29.AutoSize = true;
+this.label29.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label29.Location = new Point(77, 72);
+this.label29.Name = "label29";
+this.label29.Size = new Size(107, 34);
+this.label29.TabIndex = 41;
+this.label29.Text = "Растекаемость:\r\n (мм)\r\n";
+this.label30.AutoSize = true;
+this.label30.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label30.Location = new Point(91, 31);
+this.label30.Name = "label30";
+this.label30.Size = new Size(93, 34);
+this.label30.TabIndex = 40;
+this.label30.Text = "Фильтрация:\r\n(см3 /30 мин)\r\n";
+this.textBox10.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox10.Location = new Point(274, 118);
+this.textBox10.Name = "textBox10";
+this.textBox10.Size = new Size(66, 23);
+this.textBox10.TabIndex = 7;
+this.textBox10.TextChanged += new EventHandler(this.textBox10_TextChanged);
+this.textBox9.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox9.Location = new Point(190, 119);
+this.textBox9.Name = "textBox9";
+this.textBox9.Size = new Size(66, 23);
+this.textBox9.TabIndex = 6;
+this.textBox9.TextChanged += new EventHandler(this.textBox9_TextChanged);
+this.textBox8.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox8.Location = new Point(274, 78);
+this.textBox8.Name = "textBox8";
+this.textBox8.Size = new Size(66, 23);
+this.textBox8.TabIndex = 5;
+this.textBox8.TextChanged += new EventHandler(this.textBox8_TextChanged);
+this.textBox5.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox5.Location = new Point(190, 37);
+this.textBox5.Name = "textBox5";
+this.textBox5.Size = new Size(66, 23);
+this.textBox5.TabIndex = 1;
+this.textBox5.TextChanged += new EventHandler(this.textBox5_TextChanged);
+this.button2.FlatStyle = FlatStyle.Popup;
+this.button2.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.button2.Location = new Point(209, 167);
+this.button2.Name = "button2";
+this.button2.Size = new Size(132, 29);
+this.button2.TabIndex = 4;
+this.button2.Text = "Рассчитать";
+this.button2.UseVisualStyleBackColor = true;
+this.button2.Click += new EventHandler(this.button2_Click);
+this.textBox6.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox6.Location = new Point(274, 36);
+this.textBox6.Name = "textBox6";
+this.textBox6.Size = new Size(66, 23);
+this.textBox6.TabIndex = 2;
+this.textBox6.TextChanged += new EventHandler(this.textBox6_TextChanged);
+this.textBox7.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox7.Location = new Point(190, 78);
+this.textBox7.Name = "textBox7";
+this.textBox7.Size = new Size(66, 23);
+this.textBox7.TabIndex = 3;
+this.textBox7.TextChanged += new EventHandler(this.textBox7_TextChanged);
+this.radioButton1.AutoSize = true;
+this.radioButton1.Font = new Font("Century Gothic", 11.25f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.radioButton1.Location = new Point(15, 37);
+this.radioButton1.Name = "radioButton1";
+this.radioButton1.Size = new Size(189, 24);
+this.radioButton1.TabIndex = 7;
+this.radioButton1.TabStop = true;
+this.radioButton1.Text = "Конкретные значения";
+this.radioButton1.UseVisualStyleBackColor = true;
+this.radioButton1.CheckedChanged += new EventHandler(this.radioButton1_CheckedChanged);
+this.radioButton2.AutoSize = true;
+this.radioButton2.Font = new Font("Century Gothic", 11.25f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.radioButton2.Location = new Point(15, 80);
+this.radioButton2.Name = "radioButton2";
+this.radioButton2.Size = new Size(174, 24);
+this.radioButton2.TabIndex = 8;
+this.radioButton2.TabStop = true;
+this.radioButton2.Text = "Диапазон значений";
+this.radioButton2.UseVisualStyleBackColor = true;
+this.radioButton2.CheckedChanged += new EventHandler(this.radioButton2_CheckedChanged);
+this.groupBox3.Controls.Add((Control) this.label8);
+this.groupBox3.Controls.Add((Control) this.progressBar1);
+this.groupBox3.Controls.Add((Control) this.radioButton2);
+this.groupBox3.Controls.Add((Control) this.radioButton1);
+this.groupBox3.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.groupBox3.Location = new Point(13, 5);
+this.groupBox3.Name = "groupBox3";
+this.groupBox3.Size = new Size(373, 200);
+this.groupBox3.TabIndex = 9;
+this.groupBox3.TabStop = false;
+this.groupBox3.Text = "Тип вводимых значений:";
+this.label8.AutoSize = true;
+this.label8.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label8.Location = new Point(3, 130);
+this.label8.Name = "label8";
+this.label8.Size = new Size(294, 17);
+this.label8.TabIndex = 10;
+this.label8.Text = "Прогресс вычисления диапазона значений";
+this.progressBar1.Location = new Point(6, 156);
+this.progressBar1.Name = "progressBar1";
+this.progressBar1.Size = new Size(356, 23);
+this.progressBar1.TabIndex = 11;
+this.groupBox4.Controls.Add((Control) this.label38);
+this.groupBox4.Controls.Add((Control) this.groupBox6);
+this.groupBox4.Controls.Add((Control) this.label34);
+this.groupBox4.Controls.Add((Control) this.labelY);
+this.groupBox4.Controls.Add((Control) this.labelX);
+this.groupBox4.Controls.Add((Control) this.label5);
+this.groupBox4.Controls.Add((Control) this.label4);
+this.groupBox4.Controls.Add((Control) this.labelB);
+this.groupBox4.Controls.Add((Control) this.labelP);
+this.groupBox4.Controls.Add((Control) this.labelF);
+this.groupBox4.Controls.Add((Control) this.label3);
+this.groupBox4.Controls.Add((Control) this.label2);
+this.groupBox4.Controls.Add((Control) this.label1);
+this.groupBox4.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.groupBox4.Location = new Point(15, 225);
+this.groupBox4.Name = "groupBox4";
+this.groupBox4.Size = new Size(762, 229);
+this.groupBox4.TabIndex = 10;
+this.groupBox4.TabStop = false;
+this.groupBox4.Text = "Вывод";
+this.groupBox6.Controls.Add((Control) this.trackBar1);
+this.groupBox6.Controls.Add((Control) this.trackBar2);
+this.groupBox6.Controls.Add((Control) this.label6);
+this.groupBox6.Controls.Add((Control) this.label7);
+this.groupBox6.Font = new Font("Century Gothic", 11.25f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.groupBox6.Location = new Point(313, 26);
+this.groupBox6.Name = "groupBox6";
+this.groupBox6.Size = new Size(434, 149);
+this.groupBox6.TabIndex = 23;
+this.groupBox6.TabStop = false;
+this.groupBox6.Text = "Регуляторы:";
+this.trackBar1.LargeChange = 1;
+this.trackBar1.Location = new Point(47, 36);
+this.trackBar1.Maximum = 1000;
+this.trackBar1.Minimum = 1;
+this.trackBar1.Name = "trackBar1";
+this.trackBar1.Size = new Size(377, 45);
+this.trackBar1.TabIndex = 21;
+this.trackBar1.Value = 1;
+this.trackBar1.Scroll += new EventHandler(this.trackBar1_Scroll);
+this.trackBar2.LargeChange = 1;
+this.trackBar2.Location = new Point(47, 96);
+this.trackBar2.Maximum = 1000;
+this.trackBar2.Minimum = 1;
+this.trackBar2.Name = "trackBar2";
+this.trackBar2.Size = new Size(377, 45);
+this.trackBar2.TabIndex = 11;
+this.trackBar2.Value = 1;
+this.trackBar2.Scroll += new EventHandler(this.trackBar2_Scroll);
+this.label6.AutoSize = true;
+this.label6.Font = new Font("Century Gothic", 11.25f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label6.Location = new Point(8, 39);
+this.label6.Name = "label6";
+this.label6.Size = new Size(39, 20);
+this.label6.TabIndex = 16;
+this.label6.Text = "Пф:";
+this.label7.AutoSize = true;
+this.label7.Font = new Font("Century Gothic", 11.25f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label7.Location = new Point(10, 98);
+this.label7.Name = "label7";
+this.label7.Size = new Size(31, 20);
+this.label7.TabIndex = 15;
+this.label7.Text = "Пл:";
+this.label34.AutoSize = true;
+this.label34.Font = new Font("Century Gothic", 11.25f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label34.Location = new Point(6, 36);
+this.label34.Name = "label34";
+this.label34.Size = new Size(204, 18);
+this.label34.TabIndex = 22;
+this.label34.Text = "Приближенное решение:";
+this.labelY.AutoSize = true;
+this.labelY.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelY.Location = new Point(134, 90);
+this.labelY.Name = "labelY";
+this.labelY.Size = new Size(20, 17);
+this.labelY.TabIndex = 9;
+this.labelY.Text = "...";
+this.labelX.AutoSize = true;
+this.labelX.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelX.Location = new Point(134, 68);
+this.labelX.Name = "labelX";
+this.labelX.Size = new Size(20, 17);
+this.labelX.TabIndex = 8;
+this.labelX.Text = "...";
+this.label5.AutoSize = true;
+this.label5.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label5.Location = new Point(8, 90);
+this.label5.Name = "label5";
+this.label5.Size = new Size(28, 17);
+this.label5.TabIndex = 7;
+this.label5.Text = "Пл:";
+this.label4.AutoSize = true;
+this.label4.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label4.Location = new Point(8, 68);
+this.label4.Name = "label4";
+this.label4.Size = new Size(35, 17);
+this.label4.TabIndex = 6;
+this.label4.Text = "Пф:";
+this.labelB.AutoSize = true;
+this.labelB.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelB.Location = new Point(134, 159);
+this.labelB.Name = "labelB";
+this.labelB.Size = new Size(20, 17);
+this.labelB.TabIndex = 5;
+this.labelB.Text = "...";
+this.labelP.AutoSize = true;
+this.labelP.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelP.Location = new Point(134, 137);
+this.labelP.Name = "labelP";
+this.labelP.Size = new Size(20, 17);
+this.labelP.TabIndex = 4;
+this.labelP.Text = "...";
+this.labelF.AutoSize = true;
+this.labelF.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelF.Location = new Point(134, 114);
+this.labelF.Name = "labelF";
+this.labelF.Size = new Size(20, 17);
+this.labelF.TabIndex = 3;
+this.labelF.Text = "...";
+this.label3.AutoSize = true;
+this.label3.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label3.Location = new Point(8, 159);
+this.label3.Name = "label3";
+this.label3.Size = new Size(66, 17);
+this.label3.TabIndex = 2;
+this.label3.Text = "Вязкость:";
+this.label2.AutoSize = true;
+this.label2.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label2.Location = new Point(8, 137);
+this.label2.Name = "label2";
+this.label2.Size = new Size(113, 17);
+this.label2.TabIndex = 1;
+this.label2.Text = "Растекаемость:";
+this.label1.AutoSize = true;
+this.label1.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label1.Location = new Point(8, 114);
+this.label1.Name = "label1";
+this.label1.Size = new Size(89, 17);
+this.label1.TabIndex = 0;
+this.label1.Text = "Фильтрация:";
+this.label19.AutoSize = true;
+this.label19.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label19.Location = new Point(8, 113);
+this.label19.Name = "label19";
+this.label19.Size = new Size(89, 17);
+this.label19.TabIndex = 0;
+this.label19.Text = "Фильтрация:";
+this.label18.AutoSize = true;
+this.label18.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label18.Location = new Point(8, 136);
+this.label18.Name = "label18";
+this.label18.Size = new Size(113, 17);
+this.label18.TabIndex = 1;
+this.label18.Text = "Растекаемость:";
+this.label17.AutoSize = true;
+this.label17.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label17.Location = new Point(8, 158);
+this.label17.Name = "label17";
+this.label17.Size = new Size(66, 17);
+this.label17.TabIndex = 2;
+this.label17.Text = "Вязкость:";
+this.labelFD.AutoSize = true;
+this.labelFD.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelFD.Location = new Point(159, 115);
+this.labelFD.Name = "labelFD";
+this.labelFD.Size = new Size(20, 17);
+this.labelFD.TabIndex = 3;
+this.labelFD.Text = "...";
+this.labelPD.AutoSize = true;
+this.labelPD.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelPD.Location = new Point(159, 137);
+this.labelPD.Name = "labelPD";
+this.labelPD.Size = new Size(20, 17);
+this.labelPD.TabIndex = 4;
+this.labelPD.Text = "...";
+this.labelBD.AutoSize = true;
+this.labelBD.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelBD.Location = new Point(159, 159);
+this.labelBD.Name = "labelBD";
+this.labelBD.Size = new Size(20, 17);
+this.labelBD.TabIndex = 5;
+this.labelBD.Text = "...";
+this.label13.AutoSize = true;
+this.label13.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label13.Location = new Point(8, 67);
+this.label13.Name = "label13";
+this.label13.Size = new Size(35, 17);
+this.label13.TabIndex = 6;
+this.label13.Text = "Пф:";
+this.label12.AutoSize = true;
+this.label12.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label12.Location = new Point(8, 89);
+this.label12.Name = "label12";
+this.label12.Size = new Size(28, 17);
+this.label12.TabIndex = 7;
+this.label12.Text = "Пл:";
+this.labelXD.AutoSize = true;
+this.labelXD.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelXD.Location = new Point(159, 68);
+this.labelXD.Name = "labelXD";
+this.labelXD.Size = new Size(20, 17);
+this.labelXD.TabIndex = 8;
+this.labelXD.Text = "...";
+this.labelYD.AutoSize = true;
+this.labelYD.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelYD.Location = new Point(159, 90);
+this.labelYD.Name = "labelYD";
+this.labelYD.Size = new Size(20, 17);
+this.labelYD.TabIndex = 9;
+this.labelYD.Text = "...";
+this.label23.AutoSize = true;
+this.label23.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label23.Location = new Point(6, 258);
+this.label23.Name = "label23";
+this.label23.Size = new Size(89, 17);
+this.label23.TabIndex = 10;
+this.label23.Text = "Фильтрация:";
+this.label22.AutoSize = true;
+this.label22.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label22.Location = new Point(6, 281);
+this.label22.Name = "label22";
+this.label22.Size = new Size(113, 17);
+this.label22.TabIndex = 11;
+this.label22.Text = "Растекаемость:";
+this.label21.AutoSize = true;
+this.label21.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label21.Location = new Point(6, 303);
+this.label21.Name = "label21";
+this.label21.Size = new Size(66, 17);
+this.label21.TabIndex = 12;
+this.label21.Text = "Вязкость:";
+this.labelFDC.AutoSize = true;
+this.labelFDC.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular,GraphicsUnit.Point, (byte) 204);
+this.labelFDC.Location = new Point(159, 259);
+this.labelFDC.Name = "labelFDC";
+this.labelFDC.Size = new Size(20, 17);
+this.labelFDC.TabIndex = 13;
+this.labelFDC.Text = "...";
+this.labelPDC.AutoSize = true;
+this.labelPDC.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelPDC.Location = new Point(159, 282);
+this.labelPDC.Name = "labelPDC";
+this.labelPDC.Size = new Size(20, 17);
+this.labelPDC.TabIndex = 14;
+this.labelPDC.Text = "...";
+this.labelBDC.AutoSize = true;
+this.labelBDC.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelBDC.Location = new Point(159, 304);
+this.labelBDC.Name = "labelBDC";
+this.labelBDC.Size = new Size(20, 17);
+this.labelBDC.TabIndex = 15;
+this.labelBDC.Text = "...";
+this.label14.AutoSize = true;
+this.label14.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label14.Location = new Point(6, 212);
+this.label14.Name = "label14";
+this.label14.Size = new Size(35, 17);
+this.label14.TabIndex = 16;
+this.label14.Text = "Пф:";
+this.textBox1.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.textBox1.Location = new Point(319, 70);
+this.textBox1.Multiline = true;
+this.textBox1.Name = "textBox1";
+this.textBox1.ReadOnly = true;
+this.textBox1.ScrollBars = ScrollBars.Vertical;
+this.textBox1.Size = new Size(274, 298);
+this.textBox1.TabIndex = 0;
+this.label11.AutoSize = true;
+this.label11.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label11.Location = new Point(6, 234);
+this.label11.Name = "label11";
+this.label11.Size = new Size(28, 17);
+this.label11.TabIndex = 17;
+this.label11.Text = "Пл:";
+this.labelXDC.AutoSize = true;
+this.labelXDC.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular,GraphicsUnit.Point, (byte) 204);
+this.labelXDC.Location = new Point(159, 213);
+this.labelXDC.Name = "labelXDC";
+this.labelXDC.Size = new Size(20, 17);
+this.labelXDC.TabIndex = 18;
+this.labelXDC.Text = "...";
+this.labelYDC.AutoSize = true;
+this.labelYDC.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelYDC.Location = new Point(159, 235);
+this.labelYDC.Name = "labelYDC";
+this.labelYDC.Size = new Size(20, 17);
+this.labelYDC.TabIndex = 19;
+this.labelYDC.Text = "...";
+this.label24.AutoSize = true;
+this.label24.Font = new Font("Century Gothic", 11.25f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label24.Location = new Point(6, 39);
+this.label24.Name = "label24";
+this.label24.Size = new Size(166, 18);
+this.label24.TabIndex = 20;
+this.label24.Text = "Минимум по сумме:";
+this.label25.AutoSize = true;
+this.label25.Font = new Font("Century Gothic", 11.25f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label25.Location = new Point(6, 187);
+this.label25.Name = "label25";
+this.label25.Size = new Size(152, 18);
+this.label25.TabIndex = 21;
+this.label25.Text = "Минимум по цене:";
+this.labelSUM.AutoSize = true;
+this.labelSUM.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.labelSUM.Location = new Point(159, 188);
+this.labelSUM.Name = "labelSUM";
+this.labelSUM.Size = new Size(20, 17);
+this.labelSUM.TabIndex = 22;
+this.labelSUM.Text = "...";
+this.label10.AutoSize = true;
+this.label10.Font = new Font("Century Gothic", 9.75f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.label10.Location = new Point(316, 51);
+this.label10.Name = "label10";
+this.label10.Size = new Size(362, 16);
+this.label10.TabIndex = 26;
+this.label10.Text = "Поиск значений необходимого св-ва среди решений";
+this.groupBox5.Controls.Add((Control) this.label37);
+this.groupBox5.Controls.Add((Control) this.button4);
+this.groupBox5.Controls.Add((Control) this.button3);
+this.groupBox5.Controls.Add((Control) this.label16);
+this.groupBox5.Controls.Add((Control) this.textBox11);
+this.groupBox5.Controls.Add((Control) this.label15);
+this.groupBox5.Controls.Add((Control) this.label9);
+this.groupBox5.Controls.Add((Control) this.numericUpDown1);
+this.groupBox5.Controls.Add((Control) this.comboBox1);
+this.groupBox5.Controls.Add((Control) this.label10);
+this.groupBox5.Controls.Add((Control) this.labelSUM);
+this.groupBox5.Controls.Add((Control) this.label25);
+this.groupBox5.Controls.Add((Control) this.label24);
+this.groupBox5.Controls.Add((Control) this.labelYDC);
+this.groupBox5.Controls.Add((Control) this.labelXDC);
+this.groupBox5.Controls.Add((Control) this.label11);
+this.groupBox5.Controls.Add((Control) this.textBox1);
+this.groupBox5.Controls.Add((Control) this.label14);
+this.groupBox5.Controls.Add((Control) this.labelBDC);
+this.groupBox5.Controls.Add((Control) this.labelPDC);
+this.groupBox5.Controls.Add((Control) this.labelFDC);
+this.groupBox5.Controls.Add((Control) this.label21);
+this.groupBox5.Controls.Add((Control) this.label22);
+this.groupBox5.Controls.Add((Control) this.label23);
+this.groupBox5.Controls.Add((Control) this.labelYD);
+this.groupBox5.Controls.Add((Control) this.labelXD);
+this.groupBox5.Controls.Add((Control) this.label12);
+this.groupBox5.Controls.Add((Control) this.label13);
+this.groupBox5.Controls.Add((Control) this.labelBD);
+this.groupBox5.Controls.Add((Control) this.labelPD);
+this.groupBox5.Controls.Add((Control) this.labelFD);
+this.groupBox5.Controls.Add((Control) this.label17);
+this.groupBox5.Controls.Add((Control) this.label18);
+this.groupBox5.Controls.Add((Control) this.label19);
+this.groupBox5.Font = new Font("Century Gothic", 12f, FontStyle.Bold, GraphicsUnit.Point, (byte) 204);
+this.groupBox5.Location = new Point(15, 225);
+this.groupBox5.Name = "groupBox5";
+this.groupBox5.Size = new Size(762, 374);
+this.groupBox5.TabIndex = 11;
+this.groupBox5.TabStop = false;
+this.groupBox5.Text = "Вывод";
+this.button4.FlatStyle = FlatStyle.Popup;
+this.button4.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.button4.Location = new Point(636, 337);
+this.button4.Name = "button4";
+this.button4.Size = new Size(86, 31);
+this.button4.TabIndex = 37;
+this.button4.Text = "Назад";
+this.button4.UseVisualStyleBackColor = true;
+this.button4.Click += new EventHandler(this.button4_Click);
+this.button3.FlatStyle = FlatStyle.Popup;
+this.button3.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.button3.Location = new Point(617, 292);
+this.button3.Name = "button3";
+this.button3.Size = new Size(120, 39);
+this.button3.TabIndex = 30;
+this.button3.Text = "Поиск";
+this.button3.UseVisualStyleBackColor = true;
+this.button3.Click += new EventHandler(this.button3_Click);
+this.label16.AutoSize = true;
+this.label16.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label16.Location = new Point(613, 201);
+this.label16.Name = "label16";
+this.label16.Size = new Size(138, 51);
+this.label16.TabIndex = 36;
+this.label16.Text = "Введите значение\r\nоколо которого \r\nпроизводить поиск:";
+this.textBox11.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular,GraphicsUnit.Point, (byte) 204);
+this.textBox11.Location = new Point(617, 260);
+this.textBox11.Name = "textBox11";
+this.textBox11.Size = new Size(120, 23);
+this.textBox11.TabIndex = 35;
+this.textBox11.TextChanged += new EventHandler(this.textBox11_TextChanged);
+this.textBox11.KeyPress += new KeyPressEventHandler(this.textBox_KeyPress);
+this.label15.AutoSize = true;
+this.label15.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label15.Location = new Point(607, 133);
+this.label15.Name = "label15";
+this.label15.Size = new Size(140, 34);
+this.label15.TabIndex = 34;
+this.label15.Text = "Выберите диапазон\r\nзначений:\r\n";
+this.label9.AutoSize = true;
+this.label9.Font = new Font("Century Gothic", 9.75f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label9.Location = new Point(607, 75);
+this.label9.Name = "label9";
+this.label9.Size = new Size(138, 17);
+this.label9.TabIndex = 33;
+this.label9.Text = "Выберите свойство:";
+this.numericUpDown1.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.numericUpDown1.Location = new Point(651, 174);
+this.numericUpDown1.Minimum = new Decimal(new int[4]{1,0,0,0});
+this.numericUpDown1.Name = "numericUpDown1";
+this.numericUpDown1.Size = new Size(45, 22);
+this.numericUpDown1.TabIndex = 32;
+this.numericUpDown1.Value = new Decimal(new int[4]{1,0,0,0});
+this.comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
+this.comboBox1.Font = new Font("Century Gothic", 9f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.comboBox1.FormattingEnabled = true;
+this.comboBox1.Items.AddRange(new object[3]{(object) "Фильтрация",(object)"Растекаемость",(object) "Вязкость"});
+this.comboBox1.Location = new Point(617, 97);
+this.comboBox1.Name = "comboBox1";
+this.comboBox1.Size = new Size(120, 25);
+this.comboBox1.TabIndex = 31;
+this.label37.AutoSize = true;
+this.label37.Font = new Font("Century Gothic", 11.25f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label37.Location = new Point(315, 23);
+this.label37.Name = "label37";
+this.label37.Size = new Size(405, 20);
+this.label37.TabIndex = 38;
+this.label37.Text = "Плотность тампонажного раствора: 1,87 ± 0,02 г/см3";
+this.label38.AutoSize = true;
+this.label38.Font = new Font("Century Gothic", 11.25f, FontStyle.Regular, GraphicsUnit.Point, (byte) 204);
+this.label38.Location = new
+Point(10, 192);
+this.label38.Name = "label38";
+this.label38.Size = new Size(405, 20);
+this.label38.TabIndex = 39;
+this.label38.Text = "Плотность тампонажного раствора: 1,87 ± 0,02 г/см3";
+this.AutoScaleDimensions = new SizeF(6f, 13f);
+this.AutoScaleMode = AutoScaleMode.Font;
+this.BackColor = Color.WhiteSmoke;
+this.ClientSize = new Size(789, 611);
+this.Controls.Add((Control) this.groupBox3);
+this.Controls.Add((Control) this.groupBox2);
+this.Controls.Add((Control) this.groupBox5);
+this.Controls.Add((Control) this.groupBox4);
+this.Controls.Add((Control) this.groupBox1);
+this.FormBorderStyle = FormBorderStyle.FixedSingle;
+this.Icon = (Icon) componentResourceManager.GetObject("$this.Icon");
+this.MaximizeBox = false;
+this.Name = nameof (Form1);
+this.Text = "Выбор рецептуры тампонажных составов";
+this.groupBox1.ResumeLayout(false);
+this.groupBox1.PerformLayout();
+this.groupBox2.ResumeLayout(false);
+this.groupBox2.PerformLayout();
+this.groupBox3.ResumeLayout(false);
+this.groupBox3.PerformLayout();
+this.groupBox4.ResumeLayout(false);
+this.groupBox4.PerformLayout();
+this.groupBox6.ResumeLayout(false);
+this.groupBox6.PerformLayout();
+this.trackBar1.EndInit();
+this.trackBar2.EndInit();
+this.groupBox5.ResumeLayout(false);
+this.groupBox5.PerformLayout();
+this.numericUpDown1.EndInit();
+this.ResumeLayout(false);
+}
+}
+}
+
+using Extreme.Mathematics;
+
+namespace RecipeSoftware
+{
+internal class PModel
+{
+public static string modelP1 = "220.079 + 594.23 * y - 54.7803 * x - 661.3888 * Pow(y, 2) - 644.0422 * x * y - 81.8865 * Pow(x, 2)";
+public static string modelP2 = "271.124 + 836.3447 * y - 464.8676 * x - 1326.5561 * Pow(y, 2) - 905.5659 * x * y + 803.4287 * Pow(x, 2)";
+public static string modelP3 = "348.333 - 916.667 * x + 175.000 * y";
+
+public static void GetPModelOne(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 220.079 - value;
+f[1] = num + 594.23 * x[1] - 54.7803 * x[0] - 661.3888 * x[1] * x[1] - 644.0422 * x[0] * x[1] - 81.8865 * x[0] * x[0];
+}
+
+public static void GetPJacobianOne(ref Vector<double> x, ref Matrix<double> J)
+{
+J[1, 0] = -163.733 * x[0] - 644.0422 * x[1] - 54.7803;
+J[1, 1] = -644.0422 * x[0] - 1322.7776 * x[1] + 594.23;
+}
+
+public static void GetPModelTwo(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 271.124 - value;
+f[1] = num + 836.3447 * x[1] - 464.8676 * x[0] - 1326.5561 * x[1] * x[1] - 905.5659 * x[0] * x[1] + 803.4287 * x[0] * x[0];
+}
+
+public static void GetPJacobianTwo(ref Vector<double> x, ref Matrix<double> J)
+{
+J[1, 0] = 1606.8574 * x[0] - 905.5659 * x[1] - 464.8676;
+J[1, 1] = -905.5659 * x[0] - 2653.1122 * x[1] + 836.3447;
+}
+
+public static void GetPModelThree(double value, ref Vector<double> x, ref Vector<double> f)
+{
+double num = 348.333 - value;
+f[1] = num - 916.667 * x[0] + 175.0 * x[1];
+}
+
+public static void GetPJacobianThree(ref Vector<double> x, ref Matrix<double> J)
+{
+J[1, 0] = -916.667;
+J[1, 1] = 175.0;
+}
+}
+}
+
