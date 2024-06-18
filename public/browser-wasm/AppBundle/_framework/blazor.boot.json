@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "SolutionRecipeCalculation.dll",
   "resources": {
-    "hash": "sha256-JerJOriUt+Zkph0DNuN464aWMTsBucKARzZs43WJaQ4=",
+    "hash": "sha256-+TG9V8Nz1g7Gr82DgZWFmZVcwRPhJ1c2i1dfzU7ZYFU=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-a7E3mWDZMhWgdILINboVrMjqQ/Anq0XxcU7UTuYMxUs="
     },
@@ -23,7 +23,7 @@
       "Extreme.Numerics.wasm": "sha256-qX+Zu7FUhlIWpC1pOJELRkduE2hkilc3VgVchFwl7b8=",
       "Microsoft.Win32.Registry.wasm": "sha256-2TiPLfCSDsMT+cysSXh5+PE3/kaCZTXvuEjNV7LGZmQ=",
       "NCalc.wasm": "sha256-g2icl75eGty7N7BO9dNY7QMAHPtXt7frbPLKDQ2ipT4=",
-      "SolutionRecipeCalculation.wasm": "sha256-byoB4ypbBb3phTD1Wy73QbfbxafA4Sx2gABi7LvLdlk=",
+      "SolutionRecipeCalculation.wasm": "sha256-M7colsVTlWHJ8biz2vG3HKSBBDszuqunOjzapqNYAdE=",
       "System.Collections.Concurrent.wasm": "sha256-gjs/QnhPP3m2isMtmVHfPsYoa34OafjCC3ALfaEQj1g=",
       "System.Collections.wasm": "sha256-mZvOV1SexD65giXEAWmwYdRIqeTHXha2xeS5OrHh6GM=",
       "System.Collections.NonGeneric.wasm": "sha256-KNFi7m89YmrQwQxHMSYpvfPujMQHGkRdOxOT5kx0KvI=",
@@ -36,7 +36,7 @@
       "System.Linq.Expressions.wasm": "sha256-H/Mjt3ChLODiGVshVU7hFN2dd02UE7QOW1wcwtYz1zo=",
       "System.ObjectModel.wasm": "sha256-SnK14brT4Re5YPokdnbDyidjwldBo29RF2PIRamh/+0=",
       "System.Private.CoreLib.wasm": "sha256-tl4j+WSa9Q68KRPF4Bm9ILhsge8wt1L8+8VcOZV6kDc=",
-      "System.Runtime.InteropServices.JavaScript.wasm": "sha256-rWyCkE7Ow0VNq17WYR71mNv1PXP9T9XS8Ys0SLECKso=",
+      "System.Runtime.InteropServices.JavaScript.wasm": "sha256-QtmBxpnjG2nlloEASHEHYlBpFOutQbfS1JQCSfEltFg=",
       "System.Threading.wasm": "sha256-X++kJNPrAG4trqtycCxQgXY+WjuDK5nypsxJ0bRP4tw=",
       "System.Threading.Tasks.Parallel.wasm": "sha256-fc0iWvuzqiWn3VnNeLWtLc9JiFK7GcATKGMyjfTYBgM="
     },

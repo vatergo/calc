@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { Dotnet } from "./types";
 
 export const useDotNet = (url: string) => {
   const dotnetUrl = useRef("");
-  const [dotnet, setDotNet] = useState<unknown>(null);
+  const [dotnet, setDotNet] = useState<Dotnet>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = async (currentUrl: string): Promise<unknown> => {
+  const load = async (currentUrl: string): Promise<Dotnet> => {
     const module = await import(/* @vite-ignore */ currentUrl);
 
     const { getAssemblyExports, getConfig } = await module.dotnet

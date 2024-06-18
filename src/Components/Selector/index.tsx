@@ -1,22 +1,28 @@
 import styles from "./index.module.css";
+import { SelectorProps } from "./types";
 
-const Selector = () => {
+const Selector = ({ mode, onChange }: SelectorProps) => {
   return (
     <div className={styles.container}>
-      <div>
+      <span>Тип ввода значений:</span>
+      <label className={styles.switch}>
         <input
-          type="radio"
-          id="specific"
-          name="type"
-          value="specific"
-          checked
+          type="checkbox"
+          checked={mode === "range"}
+          onChange={() => {
+            if (mode === "single") {
+              onChange("range");
+            } else {
+              onChange("single");
+            }
+          }}
         />
-        <label htmlFor="specific">Конкретные значения</label>
-      </div>
-      <div>
-        <input type="radio" id="range" name="type" value="range" checked />
-        <label htmlFor="range">Диапазон значений</label>
-      </div>
+        <div className={styles.slider}>
+          <div className={styles.dot}>
+            <span>Диапазон</span>
+          </div>
+        </div>
+      </label>
     </div>
   );
 };

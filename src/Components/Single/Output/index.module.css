@@ -1,0 +1,23 @@
+.table {
+  width: 100%;
+}
+
+.table tbody {
+  width: 100%;
+  width: 100%;
+}
+
+.input {
+  width: 200px;
+}
+
+td {
+  padding: 0 20px;
+}
+
+tr td:first-child {
+  padding-left: 0;
+}
+tr td:last-child {
+  padding-right: 0;
+}

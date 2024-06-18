@@ -6,11 +6,7 @@
   gap: 12px;
   padding: 12px;
   box-sizing: border-box;
-}
-
-.top {
-  display: flex;
-  flex-direction: row;
-  height: 50%;
-  gap: 12px;
+  background-color: #f7f8fa;
+  color: #222426;
+  overflow: auto;
 }
