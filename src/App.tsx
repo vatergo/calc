@@ -9,8 +9,8 @@ import { Mode } from "./types";
 
 function App() {
   const { dotnet, loading } = useDotNet(
-    //"../browser-wasm/AppBundle/_framework/dotnet.js" // prod
-    "../../../public/browser-wasm/AppBundle/_framework/dotnet.js" // dev
+    "../browser-wasm/AppBundle/_framework/dotnet.js" // prod
+    //"../../../public/browser-wasm/AppBundle/_framework/dotnet.js" // dev
   );
 
   const [mode, setMode] = useState<Mode>("single");

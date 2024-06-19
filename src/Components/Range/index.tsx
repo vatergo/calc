@@ -35,7 +35,9 @@ const Range = ({ dotnet }: RangeProps) => {
       ).then((values: string) => {
         const result = values
           .split("|")
-          .map((item) => item.split(":").map((item) => Number(item)));
+          .map((item) =>
+            item.split(":").map((item) => Number(item.replace(",", ".")))
+          );
 
         let minSum = 999999;
         let minSumRes: number[] = [];

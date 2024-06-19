@@ -26,9 +26,9 @@ const Output = (props: OutputProps) => {
           <span>{label}</span>
           <span>ПФ: {item[3].toFixed(4)}</span>
           <span>ПЛ: {item[4].toFixed(4)}</span>
-          <span>Ф: {item[1].toFixed(4)}</span>
-          <span>Р: {item[2].toFixed(4)}</span>
-          <span>В: {item[3].toFixed(4)}</span>
+          <span>Ф: {item[0].toFixed(4)}</span>
+          <span>Р: {item[1].toFixed(4)}</span>
+          <span>В: {item[2].toFixed(4)}</span>
         </div>
       );
     });
@@ -53,15 +53,15 @@ const Output = (props: OutputProps) => {
               </tr>
               <tr>
                 <td>Фильтрация:</td>
-                <td>{minSumData[1].toFixed(4)}</td>
+                <td>{minSumData[0].toFixed(4)}</td>
               </tr>
               <tr>
                 <td>Растекаемость:</td>
-                <td>{minSumData[2].toFixed(4)}</td>
+                <td>{minSumData[1].toFixed(4)}</td>
               </tr>
               <tr>
                 <td>Вязкость:</td>
-                <td>{minSumData[3].toFixed(4)}</td>
+                <td>{minSumData[2].toFixed(4)}</td>
               </tr>
             </tbody>
           </table>
@@ -82,15 +82,15 @@ const Output = (props: OutputProps) => {
               </tr>
               <tr>
                 <td>Фильтрация:</td>
-                <td>{minPriceData[1].toFixed(4)}</td>
+                <td>{minPriceData[0].toFixed(4)}</td>
               </tr>
               <tr>
                 <td>Растекаемость:</td>
-                <td>{minPriceData[2].toFixed(4)}</td>
+                <td>{minPriceData[1].toFixed(4)}</td>
               </tr>
               <tr>
                 <td>Вязкость:</td>
-                <td>{minPriceData[3].toFixed(4)}</td>
+                <td>{minPriceData[2].toFixed(4)}</td>
               </tr>
             </tbody>
           </table>
@@ -148,18 +148,18 @@ const Output = (props: OutputProps) => {
                   data.filter((item) => {
                     if (searchField === "filtration") {
                       return (
-                        item[1] >= aroundValue - range &&
-                        item[1] <= aroundValue + range
+                        item[0] >= aroundValue - range &&
+                        item[0] <= aroundValue + range
                       );
                     } else if (searchField === "spreadability") {
                       return (
-                        item[2] >= aroundValue - range &&
-                        item[2] <= aroundValue + range
+                        item[1] >= aroundValue - range &&
+                        item[1] <= aroundValue + range
                       );
                     } else if (searchField === "viscosity") {
                       return (
-                        item[3] >= aroundValue - range &&
-                        item[3] <= aroundValue + range
+                        item[2] >= aroundValue - range &&
+                        item[2] <= aroundValue + range
                       );
                     }
                   })

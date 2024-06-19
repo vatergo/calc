@@ -14,13 +14,20 @@ const Single = ({ dotnet }: SingleProps) => {
   const onSubmit = useCallback(() => {
     setData(null);
     setLoading(true);
+    console.log("dotnet", dotnet);
     if (dotnet) {
-      dotnet.App.Calculation(filtration, spreadability, viscosity).then(
-        (values: string) => {
-          setData(values.split(":").map((item) => Number(item)));
+      dotnet.App.Calculation(filtration, spreadability, viscosity)
+        .then((values: string) => {
+          console.log("values", values);
+          setData(
+            values.split(":").map((item) => Number(item.replace(",", ".")))
+          );
           setLoading(false);
-        }
-      );
+        })
+        .catch((error) => {
+          console.log("error", error);
+          setLoading(false);
+        });
     }
   }, [dotnet, filtration, spreadability, viscosity]);
 
@@ -34,7 +41,9 @@ const Single = ({ dotnet }: SingleProps) => {
           PF,
           PL
         ).then((values: string) => {
-          setData(values.split(":").map((item) => Number(item)));
+          setData(
+            values.split(":").map((item) => Number(item.replace(",", ".")))
+          );
         });
       }
     },
