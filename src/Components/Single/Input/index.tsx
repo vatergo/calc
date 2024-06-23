@@ -21,6 +21,14 @@ const Input = (props: InputProps) => {
       }}
     >
       <label>
+        Плотность тампонажного раствора (г/см
+        <sup>
+          <small>3</small>
+        </sup>
+        ):
+        <input value="1.87 ± 0.02" disabled />
+      </label>
+      <label>
         Фильтрация (см
         <sup>
           <small>3</small>
@@ -45,7 +53,7 @@ const Input = (props: InputProps) => {
         />
       </label>
       <label>
-        Вязкость (мПа*с):
+        Вязкость (мПа•с):
         <input
           onChange={({ target }) => onChangeViscosity(Number(target.value))}
           value={viscosity}

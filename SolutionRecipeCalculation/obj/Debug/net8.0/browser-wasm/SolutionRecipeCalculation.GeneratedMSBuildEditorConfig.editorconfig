@@ -12,6 +12,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = browser
 build_property.RootNamespace = SolutionRecipeCalculation
-build_property.ProjectDir = /Users/vatergo/Desktop/pets/SolutionRecipeCalculation/
+build_property.ProjectDir = /Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = false

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import styles from "./index.module.css";
 import { OutputProps, SearchField } from "./types";
+import Help from "../../../assets/Help";
 
 const Output = (props: OutputProps) => {
   const { data, minPrice, minPriceData, minSumData } = props;
@@ -44,11 +45,31 @@ const Output = (props: OutputProps) => {
           <table>
             <tbody>
               <tr>
-                <td>ПФ:</td>
+                <td>
+                  <div className={styles.label}>
+                    Понизитель фильтрации:
+                    <span className={styles.help}>
+                      <Help />
+                      <div className={styles.tooltip}>
+                        на основе гидроксиэтилцеллюлозы (ГЭЦ)
+                      </div>
+                    </span>
+                  </div>
+                </td>
                 <td>{minSumData[3].toFixed(4)}</td>
               </tr>
               <tr>
-                <td>ПЛ:</td>
+                <td>
+                  <div className={styles.label}>
+                    Пластификатор:
+                    <span className={styles.help}>
+                      <Help />
+                      <div className={styles.tooltip}>
+                        на основе поликарбоксилатного сополимера
+                      </div>
+                    </span>
+                  </div>
+                </td>
                 <td>{minSumData[4].toFixed(4)}</td>
               </tr>
               <tr>
@@ -73,11 +94,31 @@ const Output = (props: OutputProps) => {
           <table>
             <tbody>
               <tr>
-                <td>ПФ:</td>
+                <td>
+                  <div className={styles.label}>
+                    Понизитель фильтрации:
+                    <span className={styles.help}>
+                      <Help />
+                      <div className={styles.tooltip}>
+                        на основе гидроксиэтилцеллюлозы (ГЭЦ)
+                      </div>
+                    </span>
+                  </div>
+                </td>
                 <td>{minPriceData[3].toFixed(4)}</td>
               </tr>
               <tr>
-                <td>ПЛ:</td>
+                <td>
+                  <div className={styles.label}>
+                    Пластификатор:
+                    <span className={styles.help}>
+                      <Help />
+                      <div className={styles.tooltip}>
+                        на основе поликарбоксилатного сополимера
+                      </div>
+                    </span>
+                  </div>
+                </td>
                 <td>{minPriceData[4].toFixed(4)}</td>
               </tr>
               <tr>
@@ -95,12 +136,6 @@ const Output = (props: OutputProps) => {
             </tbody>
           </table>
         </div>
-        <span>
-          Плотность тампонажного раствора: 1.87 ± 0.02 г/см
-          <sup>
-            <small>3</small>
-          </sup>
-        </span>
         <div className={styles.search}>
           <span>
             <strong>Поиск значений: </strong>
@@ -110,7 +145,6 @@ const Output = (props: OutputProps) => {
             <select
               name="select"
               onChange={({ target }) => {
-                console.log(target.value);
                 setSearchField(target.value as SearchField);
               }}
               value={searchField}

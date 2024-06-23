@@ -14,18 +14,15 @@ const Single = ({ dotnet }: SingleProps) => {
   const onSubmit = useCallback(() => {
     setData(null);
     setLoading(true);
-    console.log("dotnet", dotnet);
     if (dotnet) {
       dotnet.App.Calculation(filtration, spreadability, viscosity)
         .then((values: string) => {
-          console.log("values", values);
           setData(
             values.split(":").map((item) => Number(item.replace(",", ".")))
           );
           setLoading(false);
         })
-        .catch((error) => {
-          console.log("error", error);
+        .catch(() => {
           setLoading(false);
         });
     }

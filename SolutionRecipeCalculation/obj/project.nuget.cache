@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7JQoe16G3ADXf46v4anjh4REGD4CUlhu9Yv7eQWm98i6qXyq8/bMIgU0H3IhqZAHAQ1e5DEYypVnjkwIkG/EuA==",
+  "dgSpecHash": "hRH2yUpsf5gmwRTqsCQ6MbOI3QWPkm8mIGx+o1CadWnnKNjVsNOrE651BdDtssbIxsoDWKda4sh+W4LjLpj40A==",
   "success": true,
-  "projectFilePath": "/Users/vatergo/Desktop/pets/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj",
+  "projectFilePath": "/Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj",
   "expectedPackageFiles": [
     "/Users/vatergo/.nuget/packages/extreme.numerics/8.1.25/extreme.numerics.8.1.25.nupkg.sha512",
     "/Users/vatergo/.nuget/packages/microsoft.net.illink.tasks/8.0.4/microsoft.net.illink.tasks.8.0.4.nupkg.sha512",

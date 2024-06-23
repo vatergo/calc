@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/vatergo/Desktop/pets/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj": {}
+    "/Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj": {}
   },
   "projects": {
-    "/Users/vatergo/Desktop/pets/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj": {
+    "/Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/vatergo/Desktop/pets/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj",
+        "projectUniqueName": "/Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj",
         "projectName": "SolutionRecipeCalculation",
-        "projectPath": "/Users/vatergo/Desktop/pets/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj",
+        "projectPath": "/Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/SolutionRecipeCalculation.csproj",
         "packagesPath": "/Users/vatergo/.nuget/packages/",
-        "outputPath": "/Users/vatergo/Desktop/pets/SolutionRecipeCalculation/obj/",
+        "outputPath": "/Users/vatergo/Desktop/pets/calc/SolutionRecipeCalculation/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/vatergo/.nuget/NuGet/NuGet.Config"

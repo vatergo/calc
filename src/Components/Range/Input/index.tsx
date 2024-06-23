@@ -50,6 +50,14 @@ const Input = (props: InputProps) => {
       }}
     >
       <label>
+        Плотность тампонажного раствора (г/см
+        <sup>
+          <small>3</small>
+        </sup>
+        ):
+        <input value="1.87 ± 0.02" disabled />
+      </label>
+      <label>
         Фильтрация (см
         <sup>
           <small>3</small>
@@ -102,7 +110,7 @@ const Input = (props: InputProps) => {
         </div>
       </label>
       <label>
-        Вязкость (мПа*с):
+        Вязкость (мПа•с):
         <div className={styles.inputs}>
           <input
             onChange={({ target }) =>
@@ -127,7 +135,7 @@ const Input = (props: InputProps) => {
       </label>
       <div className={styles.actions}>
         <label>
-          Цена ПФ (руб):
+          Цена понизителя фильтрации (руб):
           <input
             onChange={({ target }) => onChangePricePF(Number(target.value))}
             value={pricePF}
@@ -137,7 +145,7 @@ const Input = (props: InputProps) => {
           />
         </label>
         <label>
-          Цена ПЛ (руб):
+          Цена пластификатора (руб):
           <input
             onChange={({ target }) => onChangePricePL(Number(target.value))}
             value={pricePL}

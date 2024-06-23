@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./index.module.css";
 import { OutputProps } from "./types";
+import Help from "../../../assets/Help";
 
 const Output = (props: OutputProps) => {
   const { filtration, spreadability, viscosity, onChange } = props;
@@ -16,7 +17,17 @@ const Output = (props: OutputProps) => {
       <table className={styles.table}>
         <tbody>
           <tr>
-            <td>ПФ:</td>
+            <td>
+              <div className={styles.label}>
+                Понизитель фильтрации:
+                <span className={styles.help}>
+                  <Help />
+                  <div className={styles.tooltip}>
+                    на основе гидроксиэтилцеллюлозы (ГЭЦ)
+                  </div>
+                </span>
+              </div>
+            </td>
             <td className={styles.input}>
               <input
                 value={PF}
@@ -39,7 +50,17 @@ const Output = (props: OutputProps) => {
             </td>
           </tr>
           <tr>
-            <td>ПЛ:</td>
+            <td>
+              <div className={styles.label}>
+                Пластификатор:
+                <span className={styles.help}>
+                  <Help />
+                  <div className={styles.tooltip}>
+                    на основе поликарбоксилатного сополимера
+                  </div>
+                </span>
+              </div>
+            </td>
             <td className={styles.input}>
               <input
                 value={PL}
@@ -75,12 +96,6 @@ const Output = (props: OutputProps) => {
           </tr>
         </tbody>
       </table>
-      <span>
-        Плотность тампонажного раствора: 1.87 ± 0.02 г/см
-        <sup>
-          <small>3</small>
-        </sup>
-      </span>
     </>
   );
 };

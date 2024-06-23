@@ -58,7 +58,7 @@ button:focus-visible {
   outline: none;
 }
 
-input[type="number"] {
+input {
   display: flex;
   padding: 6px 12px;
   align-items: center;
@@ -69,13 +69,17 @@ input[type="number"] {
   width: 100%;
 }
 
-input[type="number"]:focus-visible {
+input:focus-visible {
   border: 1px solid #8c9096;
   outline: none;
 }
 
-input[type="number"]::selection {
+input::selection {
   background-color: #8c9096;
+}
+
+input:disabled {
+  opacity: 0.5;
 }
 
 input::-webkit-outer-spin-button,
